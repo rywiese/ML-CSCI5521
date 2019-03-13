@@ -27,52 +27,16 @@ end
 
 k = 15;
 
-% find the mean matrix Mtrain
-m = zeros([1, d]);
-for t = 1:Ntrain
-    m = m + Xtrain(t, 1:d);
-end
-m = m / Ntrain;
-Mtrain = zeros([d, Ntrain]);
-for i = 1:Ntrain
-    Mtrain(:, i) = transpose(m);
-end
-
-% project the training data
 [W, vals] = myPCA(Xtrain, k);
-X = transpose(Xtrain(:, 1:d));
-Ztrain = transpose(W) * (X - Mtrain);
-
-% find the mean matrix Mtest
-m = zeros([1, d]);
-for t = 1:Ntest
-    m = m + Xtest(t, 1:d);
-end
-m = m / Ntest;
-Mtest = zeros([d, Ntest]);
-for i = 1:Ntest
-    Mtest(:, i) = transpose(m);
-end
-
-% project the test data
-X = transpose(Xtest(:, 1:d));
-Ztest = transpose(W) * (X - Mtest);
-
-% format the z matrices for KNN
-FormatZtrain = zeros([Ntrain, k + 1]);
-FormatZtrain(:, 1:k) = transpose(Ztrain);
-FormatZtrain(:, k+1) = Xtrain(:, d+1);
-
-FormatZtest = zeros([Ntest, k + 1]);
-FormatZtest(:, 1:k) = transpose(Ztest);
-FormatZtest(:, k+1) = Xtest(:, d+1);
+Ztrain = project(Xtrain, W);
+Ztest = project(Xtest, W);
 
 % run KNN
 k = [1,3,5,7];
 predictions = zeros([1, Ntest]);
 
 for i = 1:4
-    predictions = myKNN(FormatZtrain, FormatZtest, k(i));
+    predictions = myKNN(Ztrain, Ztest, k(i));
     numWrong = 0;
     for j = 1:Ntest
         if predictions(j) ~= Test(j, D+1)
