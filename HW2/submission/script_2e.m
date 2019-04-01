@@ -14,7 +14,7 @@ formatSpec = '%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d
 s = [d+1, Ntest];
 Xtest = transpose(fscanf(tdID, formatSpec, s));
 
-[W, vals] = myPCA(Xtrain, 2);
+[W, vals] = myLDA(Xtrain, 2);
 Ztrain = project(Xtrain, W);
 Ztest = project(Xtest, W);
 
@@ -86,4 +86,4 @@ end
 scatter(x, y, [], colors, 'filled');
 labels = strings(size(x));
 labels(1:100) = num2str(c(1:100));
-text(x, y, cellstr(labels));
+text(x + .25, y, cellstr(labels));

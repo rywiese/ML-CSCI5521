@@ -1,31 +1,34 @@
-d = 64;
-Ntrain = 1500;
-Ntest = 297;
-totalTrace = 171.8141;
+d = 960;
+Ntrain = 500;
+Ntest = 124;
+totalTrace = 352650;
 
 % read in the training data into matrix Xtrain
-tdID = fopen('optdigits_train.txt', 'r');
-formatSpec = '%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d';
+tdID = fopen('face_train_data_960.txt', 'r');
+formatSpec = '%d';
 size = [d+1, Ntrain];
 Xtrain = transpose(fscanf(tdID, formatSpec, size));
 
-% read in the training data into matrix Xtest
-tdID = fopen('optdigits_test.txt', 'r');
-formatSpec = '%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d';
+% read in the test data into matrix Xtest
+tdID = fopen('face_test_data_960.txt', 'r');
+formatSpec = '%d';
 size = [d+1, Ntest];
 Xtest = transpose(fscanf(tdID, formatSpec, size));
+
+
 
 numVectors = zeros([d, 1]);
 prop = zeros([d, 1]);
 for i = 1:d
+    i
     numVectors(i) = i;
     [vecs, vals] = myPCA(Xtrain, i);
     prop(i) = sum(vals) / totalTrace;
 end
 
-scatter(numVectors, prop)
+ scatter(numVectors, prop);
 
-k = 15;
+k = 34;
 
 [W, vals] = myPCA(Xtrain, k);
 Ztrain = project(Xtrain, W);
