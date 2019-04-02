@@ -1,26 +1,20 @@
 function [h, m, Q] = EMG(flag, imagebmp, k)
 
     % open the image
-    [img cmap] = imread(imagebmp);
-    img_rgb = ind2rgb(img, cmap);
-    img_double = im2double(img_rgb);
-    %imshow(img_double)
-    [len, wid, dep] = size(img_double);
-    n = len * wid;
-    flat_size = [n, 3];
-    img_flat = reshape(img_double, flat_size);
-    size(img_flat);
-
-    X = img_flat;
+    [X, n, d, ol, ow] = readImg(imagebmp);
     I = 100;
+
+    % lambda used in 2d/e
+    % if flag is zero, the result will be the standard EM algorithm
+    lambda = (flag / 1000) * eye(d);
 
     % initialize with kmeans
     h = zeros([n, k]);
     pie = zeros([k, 1]);
-    m = zeros([k, 3]);
-    S = zeros([3, 3, k]);
+    m = zeros([k, d]);
+    S = zeros([d, d, k]);
     N = zeros([k, 1]);
-    Q = zeros([I, 1]);
+    Q = zeros([I, 2]);
     v = zeros([I, 1]);
     pdf = zeros([n, k]);
 
@@ -38,7 +32,7 @@ function [h, m, Q] = EMG(flag, imagebmp, k)
                 S(:, :, i) = S(:, :, i) + transpose(X(t, :) - m(i, :)) * (X(t, :) - m(i, :));
             end
         end
-        S(:, :, i) = S(:, :, i) / N(i);
+        S(:, :, i) = (S(:, :, i) / N(i)) + lambda;
         pie(i) = N(i) / n;
         pdf(:, i) = mvnpdf(X, m(i, :), S(:, :, i));
     end
@@ -60,11 +54,11 @@ function [h, m, Q] = EMG(flag, imagebmp, k)
             end
         end
 
-        Q(l) = 0;
+        Q(l, 1) = 0;
         for i = 1:k
             for t = 1:n
                 if pdf(t, i) ~= 0
-                    Q(l) = Q(l) + h(t, i) * (log(pie(i)) + log(pdf(t, i)));
+                    Q(l, 1) = Q(l, 1) + h(t, i) * (log(pie(i)) + log(pdf(t, i)));
                 end
             end
         end
@@ -85,21 +79,34 @@ function [h, m, Q] = EMG(flag, imagebmp, k)
             for t = 1:n
                 S(:, :, i) = S(:, :, i) + h(t, i) * transpose(X(t, :) - m(i, :)) * (X(t, :) - m(i, :));
             end
-            S(:, :, i) = S(:, :, i) / N(i);
+            S(:, :, i) = (S(:, :, i) / N(i)) + lambda;
 
             pdf(:, i) = mvnpdf(X, m(i, :), S(:, :, i));
+        end
+
+        Q(l, 2) = 0;
+        for i = 1:k
+            for t = 1:n
+                if pdf(t, i) ~= 0
+                    Q(l, 2) = Q(l, 2) + h(t, i) * (log(pie(i)) + log(pdf(t, i)));
+                end
+            end
         end
 
     end
 
     % reconstruct the compressed image
-    Y = zeros([n, 3]);
+    Y = zeros([n, d]);
     for t = 1:n
         [argval, argmax] = max(h(t, :));
         Y(t, :) = m(argmax, :);
     end
-    figure, imshow(reshape(Y, [len, wid, dep]))
+    figure, imshow(reshape(Y, [ol, ow, d]))
 
     % plot Q
-    figure, plot(v, Q)
+    figure, plot(v, Q(:, 1))
+
+    % uncomment below for extra plot in 2b
+    %hold on;
+    %plot(v, Q(:, 2))
 end
